@@ -1,0 +1,8 @@
+grpcio==1.64.0
+grpcio-tools==1.64.0
+protobuf==5.27.2
+SQLAlchemy[asyncio]==2.0.31
+asyncpg==0.29.0
+pydantic==2.8.2
+python-dotenv==1.0.1
+loguru==0.7.2

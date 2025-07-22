@@ -1,0 +1,61 @@
+syntax = "proto3";
+package easpayments;
+
+// Amounts are integer minor units (paise, cents, etc.)
+message TransferRequest {
+  string from_account = 1;
+  string to_account = 2;
+  int64 amount = 3;        // >= 1
+  string currency = 4;     // informational
+  string idempotency_key = 5; // echoed for traceability
+}
+
+message TransferResponse {
+  string tx_id = 1;            // UUID of transaction group
+  string from_account = 2;
+  string to_account = 3;
+  int64 amount = 4;
+  string currency = 5;
+  int64 from_balance_after = 6; // computed
+  int64 to_balance_after = 7;   // computed
+  string status = 8;            // "SUCCESS" | "FAILED"
+  string message = 9;           // optional error text
+}
+
+message BalanceRequest { string account_id = 1; }
+message BalanceResponse {
+  string account_id = 1;
+  int64 balance = 2;
+  string currency = 3;
+}
+
+message GetAllRequest {}
+message LedgerEntry {
+  string tx_id = 1;
+  string from_account = 2;
+  string to_account = 3;
+  int64 amount = 4;
+  string currency = 5;
+  string created_at = 6;
+}
+message GetAllResponse { repeated LedgerEntry entries = 1; }
+
+message NotificationRequest {
+  string account_id = 1;
+  string tx_id = 2;
+  int64 amount = 3;
+  string direction = 4; // CREDIT/DEBIT
+  string currency = 5;
+  string message = 6;
+}
+message NotificationResponse { bool ok = 1; }
+
+service LedgerService {
+  rpc Transfer(TransferRequest) returns (TransferResponse);
+  rpc GetBalance(BalanceRequest) returns (BalanceResponse);
+  rpc GetAllEntries(GetAllRequest) returns (GetAllResponse);
+}
+
+service NotificationService {
+  rpc Notify(NotificationRequest) returns (NotificationResponse);
+}

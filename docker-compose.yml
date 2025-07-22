@@ -1,0 +1,76 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: easpayments
+      POSTGRES_USER: easuser
+      POSTGRES_PASSWORD: easpass
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  ledger:
+    build:
+      context: .
+      dockerfile: ledger/Dockerfile
+    depends_on:
+      - postgres
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: easpayments
+      POSTGRES_USER: easuser
+      POSTGRES_PASSWORD: easpass
+      LEDGER_GRPC_PORT: 50051
+    ports:
+      - "50051:50051"
+
+  notifications:
+    build:
+      context: .
+      dockerfile: notifications/Dockerfile
+    environment:
+      NOTIFY_GRPC_PORT: 50052
+    ports:
+      - "50052:50052"
+
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    depends_on:
+      - ledger
+      - notifications
+      - postgres
+      - redis
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: easpayments
+      POSTGRES_USER: easuser
+      POSTGRES_PASSWORD: easpass
+      REDIS_URL: redis://redis:6379/0
+      LEDGER_GRPC_TARGET: ledger:50051
+      NOTIFY_GRPC_TARGET: notifications:50052
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./UI:/app/UI:ro
+      - ./scripts:/app/scripts:ro
+      - ./proto:/app/proto:ro
+
+volumes:
+  pgdata:

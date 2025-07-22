@@ -1,0 +1,185 @@
+body {
+    background-color: #1a1a1a;
+    color: #00ff00;
+    font-family: 'Cascadia Code', 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+    font-size: 14px;
+    margin: 0;
+    padding: 20px;
+}
+
+.terminal {
+    background-color: #000;
+    border: 1px solid #00ff00;
+    border-radius: 5px;
+    padding: 15px;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.header {
+    color: #00ffff;
+    text-align: center;
+    margin-bottom: 15px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+h1 {
+    color: #00ff00; /* Green color for the title */
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2em;
+    text-shadow: 0 0 5px #00ff00; /* Green text shadow */
+}
+
+h2 {
+    color: #00ff00;
+    margin-top: 25px;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    border-bottom: 1px dashed #005500;
+    padding-bottom: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Collapsible Headers */
+.collapsible {
+    cursor: pointer;
+    position: relative;
+    padding-right: 25px; /* Space for arrow */
+    user-select: none; /* Prevent text selection on click */
+}
+
+.collapsible:hover {
+    color: #00ffff; /* Cyan on hover */
+}
+
+.collapsible::after {
+    content: '▼'; /* Down arrow */
+    font-size: 0.8em;
+    margin-left: 10px;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.3s ease-in-out;
+    color: #00ff00; /* Green arrow */
+}
+
+.collapsible.collapsed::after {
+    content: '►'; /* Right arrow */
+    transform: translateY(-50%) rotate(0deg); /* Ensure it's not rotated */
+}
+
+/* Collapsed State */
+.data-table {
+    max-height: 1000px; /* Arbitrarily large value for initial state */
+    opacity: 1;
+    transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out, padding 0.5s ease-in-out, margin 0.5s ease-in-out; /* Smooth transition for collapse */
+    overflow: hidden; /* Hide content when collapsed */
+}
+
+.data-table.collapsed {
+    max-height: 0; /* Collapse height to 0 */
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background-color: #000;
+    color: #00ff00;
+}
+
+table th,
+table td {
+    padding: 8px;
+    text-align: left;
+    border: 1px solid #005500;
+}
+
+table th {
+    background-color: #003300;
+    font-weight: bold;
+    color: #00ffff;
+}
+
+table tbody tr:hover {
+    background-color: #002200;
+}
+
+/* No data message */
+.data-table p {
+    text-align: center;
+    color: #ffcc00;
+    padding: 15px;
+    border: 1px dashed #005500;
+    border-radius: 3px;
+    background-color: #001100;
+}
+
+/* Copyright Notice */
+.copyright {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 0.8em;
+    color: #00ffff;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .terminal {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 1.5em;
+    }
+
+    h2 {
+        font-size: 1em;
+    }
+
+    table thead {
+        display: none;
+    }
+
+    table, table tbody, table tr, table td {
+        display: block;
+        width: 100%;
+    }
+
+    table tr {
+        margin-bottom: 10px;
+        border: 1px solid #005500;
+        border-radius: 3px;
+    }
+
+    table td {
+        text-align: right;
+        padding-left: 50%;
+        position: relative;
+    }
+
+    table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 8px;
+        width: calc(50% - 16px);
+        white-space: nowrap;
+        text-align: left;
+        font-weight: bold;
+        color: #00ffff;
+    }
+}
