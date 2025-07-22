@@ -31,6 +31,66 @@ The system is composed of three main services, a database, a cache, and a user i
 4.  The **Gateway Service** uses **Redis** for idempotency checks and to manage distributed locks, preventing race conditions like double-spending.
 5.  After a successful transfer, the **Gateway Service** asynchronously calls the **Notifications Service** to send a notification.
 
+```mermaid
+graph TD
+    %% DARK MODE THEME
+    subgraph "User Facing"
+        style 'User Facing' fill:#1e1e1e,stroke:#8ab4f8,stroke-width:2px
+        A[UI / API Client]
+        style A fill:#2e2e2e,stroke:#8ab4f8,stroke-width:1.5px,color:#e8eaed
+    end
+
+    subgraph "EAS"
+        style Gateway fill:#1e1e1e,stroke:#34c759,stroke-width:2px
+        subgraph Gateway
+            B[REST API Endpoints]
+            C[Idempotency Check]
+            D[Distributed Lock]
+            E[gRPC Clients]
+            style B fill:#2c2c2c,stroke:#34c759,color:#e8eaed
+            style C fill:#2c2c2c,stroke:#34c759,color:#e8eaed
+            style D fill:#2c2c2c,stroke:#34c759,color:#e8eaed
+            style E fill:#2c2c2c,stroke:#34c759,color:#e8eaed
+        end
+
+        style Ledger fill:#1e1e1e,stroke:#fbbc04,stroke-width:2px
+        subgraph Ledger
+            F[gRPC Server]
+            G[Transaction Logic]
+            style F fill:#2c2c2c,stroke:#fbbc04,color:#e8eaed
+            style G fill:#2c2c2c,stroke:#fbbc04,color:#e8eaed
+        end
+
+        style Notifications fill:#1e1e1e,stroke:#ff5e5e,stroke-width:2px
+        subgraph Notifications
+            H[gRPC Server]
+            I[Notification Logic]
+            style H fill:#2c2c2c,stroke:#ff5e5e,color:#e8eaed
+            style I fill:#2c2c2c,stroke:#ff5e5e,color:#e8eaed
+        end
+
+        subgraph "Data Stores"
+            J[PostgreSQL]
+            K[Redis]
+            style J fill:#2c2c2c,stroke:#8ab4f8,color:#e8eaed
+            style K fill:#2c2c2c,stroke:#d85a7f,color:#e8eaed
+        end
+    end
+
+    A -- "REST API Call" --> B
+    B --> C
+    C -- "Check Idempotency Key" --> J
+    C --> D
+    D -- "Acquire/Release Lock" --> K
+    D --> E
+    E -- "gRPC Call" --> F
+    F --> G
+    G -- "Read/Write" --> J
+    E -- "gRPC Call (Async)" --> H
+    H --> I
+
+```
+
 ## 3. File-by-File Breakdown
 
 ### Root Directory
@@ -213,70 +273,6 @@ The system uses a PostgreSQL database with the following main tables:
 -   **Uniqueness Guarantee:** The `tx_id` is a version 4 UUID generated on the server side. Just like with client-generated UUIDs, the randomness of the generation process makes the probability of a collision negligible. Since the `ledger` service is the single source of truth for creating transactions, it can guarantee that each new transfer operation receives a unique `tx_id`.
 -   **Purpose:** The `tx_id` serves a different purpose than the idempotency key. While the idempotency key is for preventing duplicate *requests*, the `tx_id` is for grouping the *database entries* that make up a single, atomic transfer. A single transfer consists of two `ledger_entries` records: a DEBIT from the sender and a CREDIT to the receiver. Both of these records share the same `tx_id`, which allows the system to easily query for and reason about the complete transaction.
 
-
-## 9. System Flowchart
-
-```mermaid
-graph TD
-    %% DARK MODE THEME
-    subgraph "User Facing"
-        style 'User Facing' fill:#1e1e1e,stroke:#8ab4f8,stroke-width:2px
-        A[UI / API Client]
-        style A fill:#2e2e2e,stroke:#8ab4f8,stroke-width:1.5px,color:#e8eaed
-    end
-
-    subgraph "EAS"
-        style Gateway fill:#1e1e1e,stroke:#34c759,stroke-width:2px
-        subgraph Gateway
-            B[REST API Endpoints]
-            C[Idempotency Check]
-            D[Distributed Lock]
-            E[gRPC Clients]
-            style B fill:#2c2c2c,stroke:#34c759,color:#e8eaed
-            style C fill:#2c2c2c,stroke:#34c759,color:#e8eaed
-            style D fill:#2c2c2c,stroke:#34c759,color:#e8eaed
-            style E fill:#2c2c2c,stroke:#34c759,color:#e8eaed
-        end
-
-        style Ledger fill:#1e1e1e,stroke:#fbbc04,stroke-width:2px
-        subgraph Ledger
-            F[gRPC Server]
-            G[Transaction Logic]
-            style F fill:#2c2c2c,stroke:#fbbc04,color:#e8eaed
-            style G fill:#2c2c2c,stroke:#fbbc04,color:#e8eaed
-        end
-
-        style Notifications fill:#1e1e1e,stroke:#ff5e5e,stroke-width:2px
-        subgraph Notifications
-            H[gRPC Server]
-            I[Notification Logic]
-            style H fill:#2c2c2c,stroke:#ff5e5e,color:#e8eaed
-            style I fill:#2c2c2c,stroke:#ff5e5e,color:#e8eaed
-        end
-
-        subgraph "Data Stores"
-            J[PostgreSQL]
-            K[Redis]
-            style J fill:#2c2c2c,stroke:#8ab4f8,color:#e8eaed
-            style K fill:#2c2c2c,stroke:#d85a7f,color:#e8eaed
-        end
-    end
-
-    A -- "REST API Call" --> B
-    B --> C
-    C -- "Check Idempotency Key" --> J
-    C --> D
-    D -- "Acquire/Release Lock" --> K
-    D --> E
-    E -- "gRPC Call" --> F
-    F --> G
-    G -- "Read/Write" --> J
-    E -- "gRPC Call (Async)" --> H
-    H --> I
-
-```
-
-
 ## Quick Start
 
 ```bash
@@ -309,7 +305,7 @@ This script (`scripts/load_test.py`) is a simple, asynchronous load tester desig
 -   **Balance Verification:** It fetches and prints account balances before and after the load test, allowing you to observe the cumulative effect of the transfers and confirm that balances are correctly updated.
 -   **Purpose:** This script is crucial for verifying the system's stability, concurrency control (distributed locking), and idempotency under load. It helps identify race conditions or other issues that might not appear under single-threaded testing.
 
-## 10. Conclusion
+## Conclusion
 
 This EASPayments project serves as a robust foundation and a valuable learning resource for understanding modern distributed systems design principles. Its usefulness extends beyond a simple demo, offering a clear starting point for various real-world applications:
 
