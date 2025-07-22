@@ -218,35 +218,47 @@ The system uses a PostgreSQL database with the following main tables:
 
 ```mermaid
 graph TD
+    %% DARK MODE THEME
     subgraph "User Facing"
-        style 'User Facing' fill:#F2F2F2,stroke:#333,stroke-width:2px
+        style 'User Facing' fill:#1e1e1e,stroke:#8ab4f8,stroke-width:2px
         A[UI / API Client]
+        style A fill:#2e2e2e,stroke:#8ab4f8,stroke-width:1.5px,color:#e8eaed
     end
 
     subgraph "EAS"
-        style Gateway fill:#D6EAF8,stroke:#333,stroke-width:2px
+        style Gateway fill:#1e1e1e,stroke:#34c759,stroke-width:2px
         subgraph Gateway
             B[REST API Endpoints]
             C[Idempotency Check]
             D[Distributed Lock]
             E[gRPC Clients]
+            style B fill:#2c2c2c,stroke:#34c759,color:#e8eaed
+            style C fill:#2c2c2c,stroke:#34c759,color:#e8eaed
+            style D fill:#2c2c2c,stroke:#34c759,color:#e8eaed
+            style E fill:#2c2c2c,stroke:#34c759,color:#e8eaed
         end
 
-        style Ledger fill:#D5F5E3,stroke:#333,stroke-width:2px
+        style Ledger fill:#1e1e1e,stroke:#fbbc04,stroke-width:2px
         subgraph Ledger
             F[gRPC Server]
             G[Transaction Logic]
+            style F fill:#2c2c2c,stroke:#fbbc04,color:#e8eaed
+            style G fill:#2c2c2c,stroke:#fbbc04,color:#e8eaed
         end
 
-        style Notifications fill:#FADBD8,stroke:#333,stroke-width:2px
+        style Notifications fill:#1e1e1e,stroke:#ff5e5e,stroke-width:2px
         subgraph Notifications
             H[gRPC Server]
             I[Notification Logic]
+            style H fill:#2c2c2c,stroke:#ff5e5e,color:#e8eaed
+            style I fill:#2c2c2c,stroke:#ff5e5e,color:#e8eaed
         end
 
         subgraph "Data Stores"
             J[PostgreSQL]
             K[Redis]
+            style J fill:#2c2c2c,stroke:#8ab4f8,color:#e8eaed
+            style K fill:#2c2c2c,stroke:#d85a7f,color:#e8eaed
         end
     end
 
@@ -262,8 +274,6 @@ graph TD
     E -- "gRPC Call (Async)" --> H
     H --> I
 
-    style J fill:#AED6F1,stroke:#333,stroke-width:2px
-    style K fill:#F5B7B1,stroke:#333,stroke-width:2px
 ```
 
 
