@@ -219,11 +219,11 @@ The system uses a PostgreSQL database with the following main tables:
 ```mermaid
 graph TD
     subgraph "User Facing"
-        style "User Facing" fill:#F2F2F2,stroke:#333,stroke-width:2px
+        style 'User Facing' fill:#F2F2F2,stroke:#333,stroke-width:2px
         A[UI / API Client]
     end
 
-    subgraph "EASPayments System"
+    subgraph "EAS"
         style Gateway fill:#D6EAF8,stroke:#333,stroke-width:2px
         subgraph Gateway
             B[REST API Endpoints]
